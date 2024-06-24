@@ -1,0 +1,36 @@
+name: Build and Deploy
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+
+    permissions:
+      contents: read
+      id-token: write
+
+    steps:
+      - name: checkout
+        uses: actions/checkout@v3
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: 'arn:aws:iam::910320664791:role/SmartcityStandaloneInfraA-SmartcityStandaloneInfraA-MlMTQc5HZbN7'
+          aws-region: ap-northeast-1
+
+      - name: 'Create SmartCity Vector Tile'
+        id: create-smartcity-tile
+        uses: geolonia/smartcity-data-upload-action@main
+        with:
+          INPUT_DIR: './data'
+          NAME: 'SmartCity テンプレート'
+          MUNICIPALITY_CODE: '37201'
+
+      - name: Smartmap
+        run: |
+            echo "下記のURLでプレビューを開けます"
+            echo https://geolonia.github.io/smartcity-smartmap/#/?endpointUrl=${{ steps.create-smartcity-tile.outputs.pmtiles_url }}
